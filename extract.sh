@@ -29,9 +29,13 @@ abort() {
 cd "$REPO_DIR"
 
 if git remote get-url origin >/dev/null 2>&1; then
+  # Mirror is intentionally PUBLIC so the cloud audit routine can fetch raw content
+  # without a PAT. Guard ensures it doesn't accidentally flip to PRIVATE (which would
+  # break the routine). If you ever want to switch to PAT-based PRIVATE access, change
+  # this guard accordingly.
   visibility=$(GH_HOST=github.com gh repo view "$GH_REPO" --json visibility -q .visibility 2>/dev/null || echo "UNKNOWN")
-  if [[ "$visibility" != "PRIVATE" ]]; then
-    abort "repo visibility is '$visibility', expected PRIVATE"
+  if [[ "$visibility" != "PUBLIC" ]]; then
+    abort "repo visibility is '$visibility', expected PUBLIC (so routine can fetch)"
   fi
 fi
 
